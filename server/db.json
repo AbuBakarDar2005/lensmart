@@ -1,7 +1,7 @@
 {
   "admin": {
     "username": "abubakar",
-    "passwordHash": "$2b$10$IpmrxZOKgpmSeOxc4S5wouyXneyYSXkZjgDTpYrA021l9d1m9KVjO"
+    "passwordHash": "$2b$10$WDLIDve0PoevfZyhlHvA7uyFcvh5BHnELtVXxq3Khos908hkZH4Ou"
   },
   "settings": {
     "storeName": "LENS MART",
@@ -857,7 +857,7 @@
     }
   ],
   "analytics": {
-    "pageViews": 1648,
+    "pageViews": 1654,
     "tryOnSessions": 405,
     "addToCartCount": 224,
     "ordersCompleted": 14
