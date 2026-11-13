@@ -359,3 +359,70 @@ function drawPolygon(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: n
   }
   ctx.closePath();
 }
+
+export interface GlassesImageDrawOptions {
+  image: HTMLImageElement;
+  leftEye: { x: number; y: number };
+  rightEye: { x: number; y: number };
+  scale: number;
+  verticalOffset: number;
+  rollAngle: number;
+  colorTintHex?: string;
+}
+
+export function drawGlassesImageOnCanvas(ctx: CanvasRenderingContext2D, options: GlassesImageDrawOptions) {
+  const { image, leftEye, rightEye, scale, verticalOffset, rollAngle, colorTintHex } = options;
+  if (!image || !image.complete || image.naturalWidth === 0) return;
+
+  const dx = rightEye.x - leftEye.x;
+  const dy = rightEye.y - leftEye.y;
+  const eyeDistance = Math.sqrt(dx * dx + dy * dy);
+
+  // Position at midpoint between eyes with vertical offset
+  const centerX = (leftEye.x + rightEye.x) / 2;
+  const centerY = (leftEye.y + rightEye.y) / 2 + verticalOffset;
+
+  // Compute width relative to pupillary distance
+  const frameWidth = eyeDistance * 2.35 * scale;
+  const aspectRatio = image.naturalHeight / image.naturalWidth;
+  const frameHeight = frameWidth * aspectRatio;
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(rollAngle);
+
+  // Subtle drop shadow for realistic 3D depth against the face
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
+
+  ctx.drawImage(image, -frameWidth / 2, -frameHeight / 2, frameWidth, frameHeight);
+
+  // Optional color tint overlay if specified and not default dark
+  if (colorTintHex && colorTintHex !== '#121215' && colorTintHex !== '#0f0f11') {
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = colorTintHex;
+    ctx.globalAlpha = 0.25;
+    ctx.fillRect(-frameWidth / 2, -frameHeight / 2, frameWidth, frameHeight);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+export interface VtoPngModel {
+  id: string;
+  name: string;
+  shape: string;
+  path: string;
+}
+
+export const VTO_PNG_MODELS: VtoPngModel[] = [
+  { id: 'wayfarer', name: 'Classic Wayfarer', shape: 'Square', path: '/vto-glasses/01_classic_wayfarer.png' },
+  { id: 'aviator', name: 'Aviator Horizon Gold', shape: 'Aviator', path: '/vto-glasses/02_aviator_gold.png' },
+  { id: 'retro-round', name: 'Retro Round Titan', shape: 'Round', path: '/vto-glasses/03_retro_round.png' },
+  { id: 'sport', name: 'Sport Polarized Shield', shape: 'Wrap', path: '/vto-glasses/04_sport_polarized.png' },
+  { id: 'cateye', name: 'Solstice Cat-Eye', shape: 'Cat-Eye', path: '/vto-glasses/glass2.png' },
+];
+

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LENS MART - Virtual Eyewear Try-On (Python OpenCV)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b192c; }
+  </style>
+</head>
+<body class="text-white min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="border-b border-cyan-500/20 bg-slate-900/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xl border border-cyan-500/30">
+        👓
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          LENS MART <span class="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">OpenCV CV</span>
+        </h1>
+        <p class="text-xs text-slate-400">Real-Time Python Virtual Eyewear Mirror</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <form action="/upload" method="POST" enctype="multipart/form-data" class="flex items-center gap-2">
+        <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all">
+          <span>+ Upload PNG Glasses</span>
+          <input type="file" name="file" accept=".png" onchange="this.form.submit()" class="hidden">
+        </label>
+      </form>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Video Stream Card (8 Cols) -->
+    <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center">
+      <div class="relative w-full aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" alt="Live Try-On Feed" class="w-full h-full object-cover">
+        
+        <!-- Live Tag -->
+        <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-mono border border-cyan-500/30 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span>CV Tracking Active</span>
+        </div>
+      </div>
+
+      <!-- Quick Adjustment Controls -->
+      <div class="w-full p-4 bg-slate-850 border-t border-slate-800 grid grid-cols-2 gap-4 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Scale Multiplier</label>
+          <input type="range" min="0.8" max="1.4" step="0.02" value="1.05" oninput="updateAdjustments('scale', this.value)" class="w-full accent-cyan-400">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Bridge Height Offset (Y)</label>
+          <input type="range" min="-30" max="30" step="1" value="0" oninput="updateAdjustments('offset_y', this.value)" class="w-full accent-cyan-400">
+        </div>
+      </div>
+    </div>
+
+    <!-- Models Drawer (4 Cols) -->
+    <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+        <span>Available Glasses Models</span>
+        <span class="text-xs font-mono text-cyan-400">({{ models|length }})</span>
+      </h2>
+
+      <div class="flex flex-col gap-2.5 max-h-[500px] overflow-y-auto pr-1">
+        {% for m in models %}
+        <button
+          onclick="selectGlassesModel({{ m.id }})"
+          class="flex items-center gap-3 p-3 rounded-xl border text-left transition-all {% if m.id == active_idx %}border-cyan-400 bg-cyan-950/40 shadow-lg{% else %}border-slate-800 hover:border-slate-700 bg-slate-850{% endif %}"
+        >
+          <div class="w-14 h-10 bg-slate-950 rounded-lg flex items-center justify-center p-1 border border-slate-800">
+            <span class="text-xl">👓</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-sm font-bold text-white truncate">{{ m.name }}</h3>
+            <p class="text-[11px] text-slate-400 font-mono truncate">{{ m.filename }}</p>
+          </div>
+          {% if m.id == active_idx %}
+          <span class="text-cyan-400 font-bold text-xs">Active</span>
+          {% endif %}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    async function selectGlassesModel(id) {
+      await fetch('/api/select_model/' + id, { method: 'POST' });
+      window.location.reload();
+    }
+
+    async function updateAdjustments(key, value) {
+      const payload = {};
+      payload[key] = value;
+      await fetch('/api/adjust', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+  </script>
+</body>
+</html>
